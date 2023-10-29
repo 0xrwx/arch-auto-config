@@ -1,0 +1,118 @@
+Install arch:
+
+1) Your desire disk for arch is /dev/sda1 ?
+- yes
+
+2) Partition the disk
+fdisk /dev/sda
+g
+
+n
+1
+enter
++1G
+t
+1
+(BOOT)
+
+n
+2
+enter
++8G
+t
+2
+(SWAP)
+
+n
+3
+enter
++40G
+t
+3
+(ROOT)
+
+n
+4
+enter
++100G
+
+n
+5
+enter
+enter
+
+- 1 is BOOT
+- 2 is SWAP
+- 3 is ROOT
+- 4 is back up
+- 5 is HOME
+
+3) Format the partitions
+mkfs.fat -F 32 /dev/sda1
+mkswap /dev/sda2
+mkfs.ext4 /dev/sda3
+mkfs.ext4 /dev/sda4
+mkfs.ext4 /dev/sad5
+
+- 1 is mkfs.fat -F 32
+- 2 is mkswap
+- 3 is mkfs.ext4
+- 4 is mkfs.ext4
+- 5 is mkfs.ext4
+
+4) Mount the file systems
+mount /dev/sda3 /mnt
+mount --mkdir /dev/sda1 /mnt/boot
+swapon /dev/sda2
+mount --mkdir /dev/sda5 /mnt/home
+
+- 1 is mount --mkdir /dev/sda1 /mnt/boot
+- 2 is swapon /dev/sda2
+- 3 is mount /dev/sda3 /mnt
+- 4 is
+- 5 is mount /dev/sda5 /mnt/home
+
+5) Install essential packages
+pacstrap -K /mnt base linux linux-firmware
+
+6) Fstab
+genfstab -U /mnt >> /mnt/etc/fstab
+
+7) Chroot
+arch-chroot /mnt
+
+8) Time zone
+ln -sf /usr/share/zoneinfo/Europe/Kyiv /etc/localtime
+hwclock --systohc
+
+9) Localization
+echo "en_US.UTF-8 UTF-8" | sudo tee -a /etc/locale.gen
+echo "uk_UA.UTF-8 UTF-8  " | sudo tee -a /etc/locale.gen
+sudo locale-gen
+
+10) Network configuration
+echo "archlinux" | sudo tee -a /etc/hostname
+
+sudo pacman -Syu networkmanager
+systemctl enable NetworkManager.service
+
+11) Root password
+passwd
+0099887766whynot
+
+12) Boot loader
+sudo pacman -S grub efibootmgr
+grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
+
+grub-mkconfig -o /boot/grub/grub.cfg
+
+13) Microcode
+- Do you use Intel? (yes)
+sudo pacman -S intel-ucode
+
+grub-mkconfig -o /boot/grub/grub.cfg
+
+14) Reboot
+exit
+umount -R /mnt
+reboot
